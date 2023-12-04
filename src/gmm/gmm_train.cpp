@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+#include <string.h>
 #include "gmm.h"
 #include "filename.h"
 
@@ -13,6 +14,8 @@ const unsigned int DEF_ITERATIONS = 20;
 const float DEF_THR = 1e-3;
 const unsigned int DEF_NMIXTURES = 5;
 const string DEF_GMMFILE = "output.gmm";
+extern int errno;
+
 
 int read_data(const string & input_directory, const string & input_extension,
 const vector<string> &filenames, fmatrix &dat);
@@ -46,7 +49,10 @@ int main(int argc, const char *argv[])
 
 	//Read data from filenames
 	fmatrix data;
-	read_data(input_dir, input_ext, filenames, data);
+	if (read_data(input_dir, input_ext, filenames, data) != 0) {
+		cerr << "Error reading files: " << strerror(errno) << endl;
+        return -1;
+    }
 	cout << "DATA: " << data.nrow() << " x " << data.ncol() << endl;
 
 	GMM gmm;
@@ -182,7 +188,7 @@ const vector<string> &filenames, fmatrix &dat)
 		ifstream is(path.c_str(), ios::binary);
 		if (!is.good()) {
 			cerr << "Error reading file: " << path << endl;
-			continue;
+			return -1;
 		}
 		is >> dat1;
 		if (i==0) {

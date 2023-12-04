@@ -24,17 +24,15 @@ db_devel=spk_8mu/speecon
 db_test=spk_8mu/sr_test
 
 # Ficheros de resultados del reconocimiento y verificación
-FEAT=${FEAT:-$1}
-
-LOG_CLASS=$w/class_${FEAT}_${name_exp}.log
-LOG_VERIF=$w/verif_${FEAT}_${name_exp}.log
+LOG_CLASS=$w/class_${FEAT:-$1}_${name_exp}.log
+LOG_VERIF=$w/verif_${FEAT:-$1}_${name_exp}.log
 FINAL_CLASS=$w/class_test.log
 FINAL_VERIF=$w/verif_test.log
 
 # Como el fichero con el resultado de la verificación final es diferente al
 # proporcionado por el programa gmm_verify, puede serle útil usar un fichero
 # temporal para almacenar este resultado intermedio
-TEMP_VERIF=$w/temp_${FEAT}_${name_exp}.log
+TEMP_VERIF=$w/temp_${FEAT:-$1}_${name_exp}.log
 
 # ------------------------
 # Usage
@@ -89,9 +87,9 @@ compute_lp() {
 }
 
 #  Set the name of the feature (not needed for feature extraction itself)
-if [[ ! -n "$FEAT" && $# > 0 && "$(type -t compute_$1)" = function ]]; then
+if [[ ! -v FEAT && $# > 0 && "$(type -t compute_$1)" = function ]]; then
     FEAT=$1
-elif [[ ! -n "$FEAT" ]]; then
+elif [[ ! -v FEAT ]]; then
     echo "Variable FEAT not set. Please rerun with FEAT set to the desired feature."
     echo
     echo "For instance:"
