@@ -23,7 +23,7 @@ name_exp=one
 db_devel=spk_8mu/speecon
 db_test=spk_8mu/sr_test
 world="users_and_others"
-
+init_method=2
 
 # Ficheros de resultados del reconocimiento y verificación
 LOG_CLASS=$w/class_${FEAT:-$1}_${name_exp}.log
@@ -83,7 +83,27 @@ compute_lp() {
     shift
     for filename in $(sort $*); do
         mkdir -p `dirname $w/$FEAT/$filename.$FEAT`
-        EXEC="wav2lp 8 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
+        EXEC="wav2lp 16 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
+        echo $EXEC && $EXEC || exit 1
+    done
+}
+
+compute_lpcc() {
+    db=$1
+    shift
+    for filename in $(sort $*); do
+        mkdir -p `dirname $w/$FEAT/$filename.$FEAT`
+        EXEC="wav2lpcc 25 25 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
+        echo $EXEC && $EXEC || exit 1
+    done
+}
+
+compute_mfcc() {
+    db=$1
+    shift
+    for filename in $(sort $*); do
+        mkdir -p `dirname $w/$FEAT/$filename.$FEAT`
+        EXEC="wav2mfcc 20 37 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
         echo $EXEC && $EXEC || exit 1
     done
 }
@@ -115,7 +135,7 @@ for cmd in $*; do
        for dir in $db_devel/BLOCK*/SES* ; do
            name=${dir/*\/}
            echo $name ----
-           EXEC="gmm_train -v 1 -T 0.001 -N 5 -m 5 -d $w/$FEAT -e $FEAT -g $w/gmm/$FEAT/$name.gmm $lists/class/$name.train"
+           EXEC="gmm_train -v 1 -T 1.e-6 -N256 -m 32 -i $init_method -d $w/$FEAT -e $FEAT -g $w/gmm/$FEAT/$name.gmm $lists/class/$name.train"
            echo $EXEC && $EXEC || exit 1
            echo
        done
@@ -141,7 +161,7 @@ for cmd in $*; do
        # Implement 'trainworld' in order to get a Universal Background Model for speaker verification
        #
        # - The name of the world model will be used by gmm_verify in the 'verify' command below.
-       EXEC="gmm_train -v 1 -T 0.001 -N 5 -m 5 -d $w/$FEAT -e $FEAT -g $w/gmm/$FEAT/$world.gmm $lists/verif/$world.train"
+       EXEC="gmm_train -v 1 -T 1.e-6 -N128 -m 32 -i $init_method -d $w/$FEAT -e $FEAT -g $w/gmm/$FEAT/$world.gmm $lists/verif/$world.train"
        echo $EXEC && $EXEC || exit 1
 
 
@@ -155,16 +175,16 @@ for cmd in $*; do
        #   * <code> gmm_verify ... > $LOG_VERIF </code>
        #   * <code> gmm_verify ... | tee $LOG_VERIF </code>
        EXEC="gmm_verify -d $w/$FEAT -e $FEAT -D $w/gmm/$FEAT -E gmm -w $world lists/gmm.list lists/verif/all.test lists/verif/all.test.candidates"
-       echo $EXEC && $EXEC | tee $LOG_VERIF || exit 1
+       echo $EXEC && $EXEC | tee $TEMP_VERIF || exit 1
 
    elif [[ $cmd == verifyerr ]]; then
-       if [[ ! -s $LOG_VERIF ]] ; then
-          echo "ERROR: $LOG_VERIF not created"
+       if [[ ! -s $TEMP_VERIF ]] ; then
+          echo "ERROR: $TEMP_VERIF not created"
           exit 1
        fi
        # You can pass the threshold to spk_verif_score.pl or it computes the
        # best one for these particular results.
-       spk_verif_score $LOG_VERIF | tee -a $LOG_VERIF
+       spk_verif_score $TEMP_VERIF | tee -a $LOG_VERIF
 
    elif [[ $cmd == finalclass ]]; then
        ## @file
@@ -200,10 +220,8 @@ for cmd in $*; do
        EXEC="gmm_verify -d $w/$FEAT -e $FEAT -D $w/gmm/$FEAT -E gmm -w $world lists/gmm.list lists/final/verif.test lists/final/verif.test.candidates"
        echo $EXEC && $EXEC | tee $TEMP_VERIF || exit 1
        perl -ane 'print "$F[0]\t$F[1]\t";
-        if ($F[2] > 1.2058751047664) {print "1\n"} 
+        if ($F[2] > 0.276933713207707	) {print "1\n"} 
         else {print "0\n"}' $TEMP_VERIF | tee $FINAL_VERIF
-       # El valor 1.2058751047664 es el que se obtiene despues de hacer el verify y luego el veryfierr
-       # Es el umbral óptimo, cuando mejoremos el sistem habrá que volverlo ha hacer y el nuevo umbral óptimo que salga habrá que sustituirlo por este que tenemos
 
    # If the command is not recognize, check if it is the name
    # of a feature and a compute_$FEAT function exists.

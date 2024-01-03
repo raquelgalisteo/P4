@@ -49,10 +49,7 @@ int main(int argc, const char *argv[])
 
 	//Read data from filenames
 	fmatrix data;
-	if (read_data(input_dir, input_ext, filenames, data) != 0) {
-		cerr << "Error reading files: " << strerror(errno) << endl;
-        return -1;
-    }
+	read_data(input_dir, input_ext, filenames, data);
 	cout << "DATA: " << data.nrow() << " x " << data.ncol() << endl;
 
 	GMM gmm;
@@ -63,14 +60,17 @@ int main(int argc, const char *argv[])
 	/// initicialization accordingly.
 	switch (init_method) {
 		case 0:
-			gmm.random_init(data,nmix);
+			gmm.random_init(data, nmix);
 			break;
 		case 1:
+			gmm.vq_lbg(data, nmix, init_iterations, init_threshold, verbose);
 			break;
 		case 2:
+			gmm.em_split(data, nmix, init_iterations, init_threshold, verbose);
 			break;
 		default:
-			;
+			gmm.random_init(data, nmix);
+			break;
 	}
 
 	/// \TODO Apply EM to estimate GMM parameters (complete the funcion in gmm.cpp)
@@ -188,7 +188,7 @@ const vector<string> &filenames, fmatrix &dat)
 		ifstream is(path.c_str(), ios::binary);
 		if (!is.good()) {
 			cerr << "Error reading file: " << path << endl;
-			return -1;
+			continue;
 		}
 		is >> dat1;
 		if (i==0) {
