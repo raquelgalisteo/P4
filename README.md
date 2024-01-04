@@ -69,7 +69,8 @@ ejercicios indicados.
 - Escriba el *pipeline* principal usado para calcular los coeficientes cepstrales de predicción lineal
   (LPCC) en su fichero <code>scripts/wav2lpcc.sh</code>:
   ```bash
-  sox $inputfile -t raw -e signed -b 16 - | $X2X +sf | $FRAME -l 240 -p 80 | $WINDOW -l 240 -L 240 | $LPC -l 240 -m $lpc_order | $LPCC -m $lpc_order -M $lpcc_order > $base.lp
+  sox $inputfile -t raw -e signed -b 16 - | $X2X +sf | $FRAME -l 240 -p 80 | $WINDOW -l 240 -L 240 |
+	$LPC -l 240 -m $lpc_order | $LPCC -m $lpc_order -M $lpcc_order > $base.lp
   ```
 
 - Escriba el *pipeline* principal usado para calcular los coeficientes cepstrales en escala Mel (MFCC) en su
@@ -139,9 +140,17 @@ Complete el código necesario para entrenar modelos GMM.
 - Inserte una gráfica que muestre la función de densidad de probabilidad modelada por el GMM de un locutor
   para sus dos primeros coeficientes de MFCC.
 
+  <img src="imag/fdp_MFCC_orig.png" align="center">
+
 - Inserte una gráfica que permita comparar los modelos y poblaciones de dos locutores distintos (la gŕafica
   de la página 20 del enunciado puede servirle de referencia del resultado deseado). Analice la capacidad
   del modelado GMM para diferenciar las señales de uno y otro.
+
+  <img src="imag/fdp_MFCC_modif.png" align="center">
+  
+  __Como podemos observar, si el entrenamiento se realiza correctamente, es decir, que el modelo GMM es entrenado con un locutor con la distribución de probabilidad de los dos primeros coeficientes de ese mismo locutor (imágenes de la izquierda), el modelo GMM se adapta perfectamente a la distribución de probabilidad.__
+
+  __En cambio, si visualizamos un modelo GMM entrenado con un locutor con la distribución de probabilidad de los dos primeros coeficientes MFCC de otro locutor distinto (imágenes de la derecha), se observa que no se adapta a la distribución de los datos. Gracias a esto, sabemos que el modelado GMM tiene la capacidad de diferenciar señales de uno u otro locutor.__
 
 ### Reconocimiento del locutor.
 
@@ -180,14 +189,15 @@ Complete el código necesario para realizar verificación del locutor y optimice
   | Falsas Alarmas  | 17/1000 = 0.0170 | 1/1000 = 0.0010 | 9/1000 = 0.0090|
   | Cost Detection  | 44.5 | 3.7 | 14.1 |
 
-  __LP:__
-  <img src="imag/Score_LP.png" align="center">
+ __LP:__
+ <img src="imag/Score_LP.png" align="center">
 
-  __LPCC:__
-  <img src="imag/Score_LPCC.png" align="center">
+ __LPCC:__
+ <img src="imag/Score_LPCC.png" align="center">
 
-  __MFCC:__
-  <img src="imag/Score_MFCC.png" align="center">
+ __MFCC:__
+ <img src="imag/Score_MFCC.png" align="center">
+
  
 ### Test final
 
@@ -206,4 +216,3 @@ Complete el código necesario para realizar verificación del locutor y optimice
 - Recuerde enviar a Atenea un fichero en formato zip o tgz con la memoria (en formato PDF) con el trabajo 
   realizado como ampliación, así como los ficheros `class_ampl.log` y/o `verif_ampl.log`, obtenidos como 
   resultado del mismo.
-  
