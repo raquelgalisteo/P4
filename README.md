@@ -190,12 +190,15 @@ Complete el código necesario para realizar verificación del locutor y optimice
   | Cost Detection  | 44.5 | 3.7 | 14.1 |
 
  __LP:__
+
  <img src="imag/Score_LP.png" align="center">
 
  __LPCC:__
+
  <img src="imag/Score_LPCC.png" align="center">
 
  __MFCC:__
+
  <img src="imag/Score_MFCC.png" align="center">
 
  
